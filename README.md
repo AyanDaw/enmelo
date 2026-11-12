@@ -263,7 +263,7 @@ On OLED screens, true black switches pixels off, which looks better and saves ba
 
 ## 📜 License
 
-Enmelo is released under the **GPL**. It is free to use, and forks must stay open and give credit.
+Enmelo is released under the **[GPL](LICENSE)**. It is free to use, and forks must stay open and give credit.
 
 <br>
 
