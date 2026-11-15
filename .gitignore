@@ -33,3 +33,12 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Signing config (if you ever store passwords in a file)
+keystore.properties
+
+# Secrets
+.env
+
+# VS Code (you use it alongside Android Studio)
+.vscode/
