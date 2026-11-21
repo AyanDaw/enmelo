@@ -120,7 +120,7 @@ fun MiniPlayerContent(
 }
 
 @Composable
-fun MiniPlayer(controller: MediaController?, songs: List<Song>, onExpand: () -> Unit) {
+fun MiniPlayer(controller: MediaController?, songs: List<Song>, onExpand: () -> Unit, onQueue: () -> Unit) {
     if (controller == null) return
 
     var isPlaying by remember { mutableStateOf(controller.isPlaying) }
@@ -161,7 +161,7 @@ fun MiniPlayer(controller: MediaController?, songs: List<Song>, onExpand: () -> 
             isPlaying = isPlaying, fraction = fraction,
             onPlayPause = { if (isPlaying) controller.pause() else controller.play() },
             onNext = { controller.seekToNextMediaItem() },
-            onQueue = onExpand,
+            onQueue = onQueue,
             onExpand = onExpand
         )
     }

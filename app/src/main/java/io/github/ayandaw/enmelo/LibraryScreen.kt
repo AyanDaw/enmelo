@@ -73,6 +73,7 @@ fun LibraryScreen(modifier: Modifier = Modifier.Companion) {
         }
         var tab by remember { mutableStateOf("Library") } //This is set to "Library" for now which will changed by "Home"
         var expanded by remember { mutableStateOf(false) }
+        var showQueue by remember { mutableStateOf(false) }
         var controller by remember { mutableStateOf<MediaController?>(null) }
 
 
@@ -119,12 +120,15 @@ fun LibraryScreen(modifier: Modifier = Modifier.Companion) {
                 Modifier.align(Alignment.BottomCenter),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                MiniPlayer(controller, songs, onExpand = { expanded = true })
+                MiniPlayer(controller, songs, onExpand = { expanded = true }, onQueue = { showQueue = true })
                 BottomNavBar(tabs, tabs.indexOfFirst { it.label == tab }) { tab = tabs[it].label }
                 Spacer(Modifier.height(8.dp))
             }
             controller?.let { c ->
-                if (expanded) ExpandedPlayer(c, songs, onClose = { expanded = false })
+                if (expanded) ExpandedPlayer(c, songs, onClose = { expanded = false }, onQueue = { showQueue = true })
+            }
+            controller?.let { c ->
+                if (showQueue) QueueHost(c, songs, onDismiss = { showQueue = false })
             }
         }
     } else {
