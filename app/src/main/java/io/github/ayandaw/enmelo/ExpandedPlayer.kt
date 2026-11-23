@@ -41,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -69,13 +70,14 @@ fun ExpandedPlayer(controller: MediaController, songs: List<Song>, onClose: () -
     var dragging by remember { mutableStateOf<Float?>(null) }
     val fraction = if (state.duration > 0)
         (state.position.toFloat() / state.duration).coerceIn(0f, 1f) else 0f
-
+    var menuOpen by remember { mutableStateOf(false) }
+    val menuBlur by animateDpAsState(if (menuOpen) 24.dp else 0.dp, tween(200), label = "menuBlur")
 
 
     Surface(Modifier.fillMaxSize(), color = Color.Black, contentColor = Color.White) {
         BlurredBackdrop(song)
         LazyColumn(
-            Modifier.fillMaxSize().systemBarsPadding(),
+            Modifier.fillMaxSize().blur(menuBlur).systemBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
@@ -219,32 +221,10 @@ fun ExpandedPlayer(controller: MediaController, songs: List<Song>, onClose: () -
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val plain = !state.shuffle && state.repeat != Player.REPEAT_MODE_ONE
-                    PlainIconButton(
-                        when {
-                            state.repeat == Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
-                            state.shuffle -> R.drawable.ic_shuffle
-                            else -> R.drawable.ic_linear
-                        },
-                        "Play mode",
-                        {
-                            when {
-                                // repeat one -> plain
-                                state.repeat == Player.REPEAT_MODE_ONE -> {
-                                    controller.repeatMode = Player.REPEAT_MODE_OFF
-                                    controller.shuffleModeEnabled = false
-                                }
-                                // shuffle -> repeat one
-                                state.shuffle -> {
-                                    controller.shuffleModeEnabled = false
-                                    controller.repeatMode = Player.REPEAT_MODE_ONE
-                                }
-                                // plain -> shuffle
-                                else -> controller.shuffleModeEnabled = true
-                            }
-                        },
-                        size = 44.dp,
-                        tint = if (plain) Color.White.copy(alpha = 0.5f) else Color.White
+                    PlayModeButton(
+                        current = playModeOf(state.shuffle, state.repeat),
+                        onSelect = { controller.applyPlayMode(it) },
+                        onMenuChange = { menuOpen = it }
                     )
                     PlainIconButton(R.drawable.ic_previous, "Previous",
                         { controller.seekToPreviousMediaItem() }, size = 56.dp)
