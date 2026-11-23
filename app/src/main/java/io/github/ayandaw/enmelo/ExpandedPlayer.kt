@@ -50,6 +50,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import kotlin.math.roundToInt
 
@@ -218,11 +219,32 @@ fun ExpandedPlayer(controller: MediaController, songs: List<Song>, onClose: () -
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val plain = !state.shuffle && state.repeat != Player.REPEAT_MODE_ONE
                     PlainIconButton(
-                        R.drawable.ic_shuffle, "Shuffle",
-                        { controller.shuffleModeEnabled = !controller.shuffleModeEnabled },
+                        when {
+                            state.repeat == Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
+                            state.shuffle -> R.drawable.ic_shuffle
+                            else -> R.drawable.ic_linear
+                        },
+                        "Play mode",
+                        {
+                            when {
+                                // repeat one -> plain
+                                state.repeat == Player.REPEAT_MODE_ONE -> {
+                                    controller.repeatMode = Player.REPEAT_MODE_OFF
+                                    controller.shuffleModeEnabled = false
+                                }
+                                // shuffle -> repeat one
+                                state.shuffle -> {
+                                    controller.shuffleModeEnabled = false
+                                    controller.repeatMode = Player.REPEAT_MODE_ONE
+                                }
+                                // plain -> shuffle
+                                else -> controller.shuffleModeEnabled = true
+                            }
+                        },
                         size = 44.dp,
-                        tint = if (state.shuffle) Color.White else Color.White.copy(alpha = 0.5f)
+                        tint = if (plain) Color.White.copy(alpha = 0.5f) else Color.White
                     )
                     PlainIconButton(R.drawable.ic_previous, "Previous",
                         { controller.seekToPreviousMediaItem() }, size = 56.dp)
