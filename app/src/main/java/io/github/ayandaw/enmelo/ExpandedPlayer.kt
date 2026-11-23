@@ -6,6 +6,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,6 +42,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -181,19 +186,18 @@ fun ExpandedPlayer(controller: MediaController, songs: List<Song>, onClose: () -
                         enabled = state.duration > 0,
                         interactionSource = seekSource,
                         colors = seekColors,
-                        thumb = {
-                            Box(Modifier.size(16.dp), contentAlignment = Alignment.Center) {
-                                Box(Modifier.size(dotSize).clip(CircleShape).background(dotColor).padding(horizontal = 10.dp))
-                            }
-                        },
+                        thumb = { Spacer(Modifier.size(16.dp)) },
                         track = { sliderState ->
-                            SliderDefaults.Track(
-                                sliderState,
-                                Modifier.height(trackHeight),
-                                colors = seekColors,
-                                thumbTrackGapSize = 0.dp,
-                                drawStopIndicator = null
-                            )
+                            Canvas(Modifier.fillMaxWidth().height(trackHeight)) {
+                                val h = size.height
+                                val corner = CornerRadius(h / 2, h / 2)
+                                val thumbHalf = 8.dp.toPx()
+                                val center = thumbHalf + sliderState.value * (size.width - 2 * thumbHalf)
+                                val fillEnd = (center + if (active) h / 2 else 0f).coerceAtMost(size.width)
+                                drawRoundRect(Color.White.copy(alpha = 0.3f), size = size, cornerRadius = corner)
+                                drawRoundRect(Color.White, size = Size(fillEnd, h), cornerRadius = corner)
+                                drawCircle(dotColor, radius = dotSize.toPx() / 2, center = Offset(center, h / 2))
+                            }
                         }
                     )
                     Row(
