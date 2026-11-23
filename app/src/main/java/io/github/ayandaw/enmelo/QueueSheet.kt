@@ -28,6 +28,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.C
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,8 +109,15 @@ fun QueueHost(controller: MediaController, songs: List<Song>, onDismiss: () -> U
     val byId = remember(songs) { songs.associateBy { it.id.toString() } }
     val current = remember { controller.currentMediaItem?.mediaId?.let { byId[it] } }
     val upNext = remember {
-        ((controller.currentMediaItemIndex + 1) until controller.mediaItemCount)
-            .mapNotNull { byId[controller.getMediaItemAt(it).mediaId] }
+        val timeline = controller.currentTimeline
+        val found = mutableListOf<Song>()
+        var i = controller.currentMediaItemIndex
+        while (found.size < 50) {
+            i = timeline.getNextWindowIndex(i, Player.REPEAT_MODE_OFF, controller.shuffleModeEnabled)
+            if (i == C.INDEX_UNSET) break
+            byId[controller.getMediaItemAt(i).mediaId]?.let { found += it }
+        }
+        found
     }
     QueueSheet(
         current = current,
