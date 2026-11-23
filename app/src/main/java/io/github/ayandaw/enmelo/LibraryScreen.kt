@@ -7,6 +7,13 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -143,7 +150,13 @@ fun LibraryScreen(modifier: Modifier = Modifier.Companion) {
                 Spacer(Modifier.height(8.dp))
             }
             controller?.let { c ->
-                if (expanded) ExpandedPlayer(c, songs, onClose = { expanded = false }, onQueue = { showQueue = true })
+                AnimatedVisibility(
+                    visible = expanded,
+                    enter = slideInVertically(tween(350, easing = FastOutSlowInEasing)) { it } + fadeIn(tween(250)),
+                    exit = slideOutVertically(tween(300, easing = FastOutSlowInEasing)) { it } + fadeOut(tween(250))
+                ) {
+                    ExpandedPlayer(c, songs, onClose = { expanded = false }, onQueue = { showQueue = true })
+                }
             }
             controller?.let { c ->
                 if (showQueue) QueueHost(c, songs, onDismiss = { showQueue = false })
