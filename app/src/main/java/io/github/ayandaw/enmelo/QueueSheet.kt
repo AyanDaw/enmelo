@@ -40,7 +40,7 @@ fun QueueSheet(
     onPick: (Song) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -57,7 +57,7 @@ fun QueueSheet(
             )
         }
     ) {
-        Column(Modifier.fillMaxHeight(0.65f)) {
+        Column(Modifier.fillMaxHeight()) {
             Text(
                 "Queue",
                 style = MaterialTheme.typography.titleLarge,

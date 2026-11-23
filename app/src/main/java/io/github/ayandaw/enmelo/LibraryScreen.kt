@@ -1,12 +1,14 @@
 package io.github.ayandaw.enmelo
 
 import android.Manifest
+import android.app.Activity
 import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,16 +33,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import kotlinx.coroutines.Dispatchers
@@ -76,10 +82,17 @@ fun LibraryScreen(modifier: Modifier = Modifier.Companion) {
 //                for example NavTab("Radio", R.drawable.ic_radio)
             )
         }
-        var tab by remember { mutableStateOf("Library") } //This is set to "Library" for now which will changed by "Home"
-        var expanded by remember { mutableStateOf(false) }
-        var showQueue by remember { mutableStateOf(false) }
+        var tab by rememberSaveable { mutableStateOf("Library") } //This is set to "Library" for now which will changed by "Home"
+        var expanded by rememberSaveable { mutableStateOf(false) }
+        var showQueue by rememberSaveable { mutableStateOf(false) }
         var controller by remember { mutableStateOf<MediaController?>(null) }
+        val darkTheme = isSystemInDarkTheme()
+        val view = LocalView.current
+        SideEffect {
+            val window = (view.context as Activity).window
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars =
+                !darkTheme && !expanded
+        }
 
 
         LaunchedEffect(Unit) {
