@@ -12,10 +12,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -96,11 +101,11 @@ fun LibraryScreen(modifier: Modifier = Modifier.Companion) {
                 controller = null
             }
         }
-
-        Box(modifier = modifier) {
+        val bars = WindowInsets.systemBars.asPaddingValues()
+        Box(modifier = modifier.fillMaxSize()) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 160.dp)
+                contentPadding = PaddingValues(top = bars.calculateTopPadding(), bottom = 160.dp + bars.calculateBottomPadding())
             ) {
                 itemsIndexed(songs, key = { _, song -> song.id }) { index, song ->
                     SongRow(song, onClick = {
@@ -117,7 +122,7 @@ fun LibraryScreen(modifier: Modifier = Modifier.Companion) {
                 }
             }
             Column(
-                Modifier.align(Alignment.BottomCenter),
+                Modifier.align(Alignment.BottomCenter).navigationBarsPadding(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 MiniPlayer(controller, songs, onExpand = { expanded = true }, onQueue = { showQueue = true })
@@ -132,7 +137,7 @@ fun LibraryScreen(modifier: Modifier = Modifier.Companion) {
             }
         }
     } else {
-        Button(onClick = { launcher.launch(permission) }, modifier = modifier) {
+        Button(onClick = { launcher.launch(permission) }, modifier = modifier.systemBarsPadding()) {
             Text("Allow music access")
         }
     }
