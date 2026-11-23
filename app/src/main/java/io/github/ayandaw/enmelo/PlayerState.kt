@@ -20,7 +20,7 @@ class PlayerState(player: Player) {
     var duration by mutableStateOf(player.duration)
     var index by mutableStateOf(player.currentMediaItemIndex)
     var count by mutableStateOf(player.mediaItemCount)
-
+    var shuffle by mutableStateOf(player.shuffleModeEnabled)
     fun sync(player: Player) {
         isPlaying = player.isPlaying
         title = player.mediaMetadata.title?.toString() ?: ""
@@ -30,6 +30,7 @@ class PlayerState(player: Player) {
         duration = player.duration
         index = player.currentMediaItemIndex
         count = player.mediaItemCount
+        shuffle = player.shuffleModeEnabled
     }
 }
 
