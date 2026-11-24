@@ -31,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
@@ -49,10 +48,13 @@ fun MiniPlayerContent(
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
     onQueue: () -> Unit,
-    onExpand: () -> Unit
+    onExpand: () -> Unit,
+    onDismiss: () -> Unit,
+    mediaId: String?,
 ) {
     Surface(
         modifier = Modifier
+            .pullToDismiss(mediaId, onDismiss)
             .fillMaxWidth()
             .padding(horizontal = 25.dp, vertical = 5.dp)
             .height(64.dp) // Actually was 64, 8 added for 1 mm height
@@ -120,7 +122,10 @@ fun MiniPlayerContent(
 }
 
 @Composable
-fun MiniPlayer(controller: MediaController?, songs: List<Song>, onExpand: () -> Unit, onQueue: () -> Unit) {
+fun MiniPlayer(
+    controller: MediaController?, songs: List<Song>,
+    onExpand: () -> Unit, onQueue: () -> Unit, onDismiss: () -> Unit
+) {
     if (controller == null) return
 
     var isPlaying by remember { mutableStateOf(controller.isPlaying) }
@@ -162,7 +167,9 @@ fun MiniPlayer(controller: MediaController?, songs: List<Song>, onExpand: () -> 
             onPlayPause = { if (isPlaying) controller.pause() else controller.play() },
             onNext = { controller.seekToNextMediaItem() },
             onQueue = onQueue,
-            onExpand = onExpand
+            onExpand = onExpand,
+            onDismiss = onDismiss,
+            mediaId = mediaId
         )
     }
 }
@@ -174,7 +181,8 @@ fun MiniPlayerPreview() {
         MiniPlayerContent(
             song = null, title = "Aaj Jyotsna Raate", artist = "Kumar Sanu",
             isPlaying = true, fraction = 0.4f,
-            onPlayPause = {}, onNext = {}, onQueue = {}, onExpand = {}
+            onPlayPause = {}, onNext = {}, onQueue = {}, onExpand = {},
+            onDismiss = {}, mediaId = "preview"
         )
     }
 }

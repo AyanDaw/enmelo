@@ -25,10 +25,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -140,7 +142,17 @@ fun ExpandedPlayer(controller: MediaController, songs: List<Song>, onClose: () -
                                 .background(Color.Black.copy(alpha = 0.55f))
                                 .padding(horizontal = 16.dp, vertical = 10.dp)
                         ) {
-                            Text("${(v * 100).roundToInt()}%", color = Color.White)
+                            val percent = (v * 100).roundToInt()
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                VolumeIcon(percent)
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    "$percent%",
+                                    color = Color.White,
+                                    modifier = Modifier.width(48.dp),
+                                    style = LocalTextStyle.current.copy(fontFeatureSettings = "tnum")
+                                )
+                            }
                         }
                     }
                 }
