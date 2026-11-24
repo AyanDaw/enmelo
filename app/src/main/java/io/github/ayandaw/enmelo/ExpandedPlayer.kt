@@ -183,8 +183,9 @@ fun ExpandedPlayer(controller: MediaController, songs: List<Song>, onClose: () -
                         targetValue = if (active) 6.dp else 16.dp,
                         animationSpec = tween(150), label = "dotSize"
                     )
+                    val accent = MaterialTheme.colorScheme.primary
                     val dotColor by animateColorAsState(
-                        targetValue = if (active) Color.Black else Color.White,
+                        targetValue = accent, // The color of slider dot, put if else if anything else color combination needed
                         animationSpec = tween(150), label = "dotColor"
                     )
                     val seekColors = SliderDefaults.colors(
