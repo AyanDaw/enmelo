@@ -54,7 +54,7 @@ fun BottomNavBar(tabs: List<NavTab>, selected: Int, onSelect: (Int) -> Unit) {
 
     Surface(
         modifier = Modifier
-            .padding(vertical = 10.dp)
+            .padding(vertical = 5.dp)
             .height(50.dp)
             .dropShadow(
                 RoundedCornerShape(28.dp),
