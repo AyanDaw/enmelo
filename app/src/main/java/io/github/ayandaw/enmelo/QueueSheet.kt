@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -46,18 +47,17 @@ fun QueueSheet(
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         scrimColor = Color.Black.copy(alpha = 0.6f),
-        dragHandle = {
-            Box(
-                Modifier
-                    .padding(vertical = 12.dp)
-                    .width(40.dp)
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
-            )
-        }
+        dragHandle = null,
     ) {
         Column(Modifier.fillMaxHeight()) {
+            Box(
+                Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(vertical = 12.dp)
+                    .size(width = 40.dp, height = 4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
+            )
             Text(
                 "Queue",
                 style = MaterialTheme.typography.titleLarge,
