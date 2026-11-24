@@ -3,6 +3,7 @@ package io.github.ayandaw.enmelo
 import android.Manifest
 import android.app.Activity
 import android.content.ComponentName
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -44,6 +45,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,13 +56,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun LibraryScreen(modifier: Modifier = Modifier.Companion) {
+fun LibraryScreen(accentKey: String, onAccentChange: (String) -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
         Manifest.permission.READ_MEDIA_AUDIO
@@ -85,6 +91,7 @@ fun LibraryScreen(modifier: Modifier = Modifier.Companion) {
                 NavTab("Home", R.drawable.ic_home),
                 NavTab("Library", R.drawable.ic_library),
                 NavTab("Search", R.drawable.ic_search),
+                NavTab("You", R.drawable.ic_you),
 //                Note: Just Adding one line here can change the number of tabs
 //                for example NavTab("Radio", R.drawable.ic_radio)
             )
@@ -93,8 +100,11 @@ fun LibraryScreen(modifier: Modifier = Modifier.Companion) {
         var expanded by rememberSaveable { mutableStateOf(false) }
         var showQueue by rememberSaveable { mutableStateOf(false) }
         var controller by remember { mutableStateOf<MediaController?>(null) }
+        var showSettings by rememberSaveable { mutableStateOf(false) }
         val darkTheme = isSystemInDarkTheme()
         val view = LocalView.current
+        val prefs = remember { context.getSharedPreferences("enmelo", Context.MODE_PRIVATE) }
+        val scope = rememberCoroutineScope()
         SideEffect {
             val window = (view.context as Activity).window
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars =
@@ -121,31 +131,79 @@ fun LibraryScreen(modifier: Modifier = Modifier.Companion) {
                 controller = null
             }
         }
+
+        // Remember the current song: save its id whenever the song changes
+        DisposableEffect(controller) {
+            val c = controller
+            val listener = object : Player.Listener {
+                override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                    mediaItem?.mediaId?.toLongOrNull()?.let {
+                        prefs.edit().putLong("lastSongId", it).apply()
+                    }
+                }
+            }
+            c?.addListener(listener)
+            onDispose { c?.removeListener(listener) }
+        }
+
+        // On launch: load the last song (paused, from the start) so the mini player shows it
+        LaunchedEffect(controller, songs) {
+            val c = controller ?: return@LaunchedEffect
+            if (songs.isEmpty() || c.mediaItemCount > 0) return@LaunchedEffect
+            val index = songs.indexOfFirst { it.id == prefs.getLong("lastSongId", -1L) }
+            if (index >= 0) {
+                c.setMediaItems(songs.map { it.toMediaItem() }, index, 0L)
+                c.prepare()
+            }
+        }
+
+        // Pull-down on the mini player: pause (fades), then clear the queue so it disappears
+        val dismissMini: () -> Unit = {
+            controller?.pause()
+            scope.launch {
+                delay(600)
+                controller?.clearMediaItems()
+                prefs.edit().remove("lastSongId").apply()
+            }
+        }
+
         val bars = WindowInsets.systemBars.asPaddingValues()
         Box(modifier = modifier.fillMaxSize()) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(top = bars.calculateTopPadding(), bottom = 160.dp + bars.calculateBottomPadding())
-            ) {
-                itemsIndexed(songs, key = { _, song -> song.id }) { index, song ->
-                    SongRow(song, onClick = {
-                        controller?.let { c ->
-                            if (c.currentMediaItem?.mediaId == song.id.toString()) {
-                                if (!c.isPlaying) c.play()
-                            } else {
-                                c.setMediaItems(songs.map { it.toMediaItem() }, index, 0L)
-                                c.prepare()
-                                c.play()
-                            }
+            when (tab) {
+                "Home" -> PlaceholderScreen("Home")
+                "Search" -> PlaceholderScreen("Search")
+                "You" -> YouScreen { showSettings = true }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(top = bars.calculateTopPadding(), bottom = 160.dp + bars.calculateBottomPadding())
+                    ) {
+                        itemsIndexed(songs, key = { _, song -> song.id }) { index, song ->
+                            SongRow(song, onClick = {
+                                controller?.let { c ->
+                                    if (c.currentMediaItem?.mediaId == song.id.toString()) {
+                                        if (!c.isPlaying) c.play()
+                                    } else {
+                                        c.setMediaItems(songs.map { it.toMediaItem() }, index, 0L)
+                                        c.prepare()
+                                        c.play()
+                                    }
+                                }
+                            })
                         }
-                    })
+                    }
                 }
             }
             Column(
                 Modifier.align(Alignment.BottomCenter).navigationBarsPadding(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                MiniPlayer(controller, songs, onExpand = { expanded = true }, onQueue = { showQueue = true })
+                MiniPlayer(
+                    controller, songs,
+                    onExpand = { expanded = true },
+                    onQueue = { showQueue = true },
+                    onDismiss = dismissMini
+                )
                 BottomNavBar(tabs, tabs.indexOfFirst { it.label == tab }) { tab = tabs[it].label }
                 Spacer(Modifier.height(8.dp))
             }
@@ -160,6 +218,13 @@ fun LibraryScreen(modifier: Modifier = Modifier.Companion) {
             }
             controller?.let { c ->
                 if (showQueue) QueueHost(c, songs, onDismiss = { showQueue = false })
+            }
+            AnimatedVisibility(
+                visible = showSettings,
+                enter = slideInVertically(tween(350, easing = FastOutSlowInEasing)) { it } + fadeIn(tween(250)),
+                exit = slideOutVertically(tween(300, easing = FastOutSlowInEasing)) { it } + fadeOut(tween(250))
+            ) {
+                SettingsScreen(accentKey, onAccentChange) { showSettings = false }
             }
         }
     } else {
