@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
             var accentKey by remember { mutableStateOf(prefs.getString("accent", "phone") ?: "phone") }
             EnmeloTheme(accent = accentColor(accentKey)) {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    LibraryScreen(
+                    EnmeloApp(
                         accentKey = accentKey,
                         onAccentChange = {
                             accentKey = it
